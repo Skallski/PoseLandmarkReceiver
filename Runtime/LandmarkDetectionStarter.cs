@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
@@ -8,19 +9,42 @@ namespace PoseLandmarkReceiver
 {
     public class LandmarkDetectionStarter : MonoBehaviour
     {
-        private const string FILE_NAME = "PoseLandmarkSender.exe";
-
-        private Process _process;
-
+        private const string PROCESS_NAME = "PoseLandmarkSender";
+        
         public static event Action OnLandmarkDetectionStarted;
         public static event Action OnLandmarkDetectionStopped;
+        
+        private string _fileName;
+        private Process _process;
 
-        private void Start()
+        private void Start() => StartProcess();
+
+        private void OnApplicationQuit() => StopProcess();
+
+        private void OnDisable() => StopProcess();
+
+        private void StartProcess()
         {
-            string exePath = Path.Combine(Application.streamingAssetsPath, FILE_NAME);
+            _fileName = $"{PROCESS_NAME}.exe";
+            
+            // Try attach to existing process
+            Process existing = Process.GetProcessesByName(PROCESS_NAME)
+                .FirstOrDefault(p => p.HasExited == false);
+            
+            if (existing != null)
+            {
+                _process = existing;
+                
+                PoseLandmarkLogger.Log($"{_fileName} already running – attached.");
+                OnLandmarkDetectionStarted?.Invoke();
+                return;
+            }
+            
+            // If process does no exist, run new instance
+            string exePath = Path.Combine(Application.streamingAssetsPath, "PoseLandmarkSender", _fileName);
             if (File.Exists(exePath) == false)
             {
-                Debug.LogError($"file: {FILE_NAME} not found!");
+                PoseLandmarkLogger.LogError($"File: {_fileName} not found!");
                 return;
             }
 
@@ -34,24 +58,14 @@ namespace PoseLandmarkReceiver
                 };
 
                 _process = Process.Start(psi);
-                Debug.Log($"{FILE_NAME} started successfully");
+                PoseLandmarkLogger.Log($"{_fileName} started successfully");
 
                 OnLandmarkDetectionStarted?.Invoke();
             }
             catch (Exception e)
             {
-                Debug.LogError($"Failed to start {FILE_NAME}: {e.Message}");
+                PoseLandmarkLogger.LogError($"Failed to start {_fileName}: {e.Message}");
             }
-        }
-
-        private void OnApplicationQuit()
-        {
-            StopProcess();
-        }
-
-        private void OnDisable()
-        {
-            StopProcess();
         }
 
         private void StopProcess()
@@ -64,6 +78,8 @@ namespace PoseLandmarkReceiver
 
                     _process.Kill();
                     _process.WaitForExit(2000);
+                    
+                    PoseLandmarkLogger.Log($"{_fileName} closed successfully");
                 }
             }
             catch

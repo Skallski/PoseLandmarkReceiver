@@ -9,7 +9,7 @@ namespace PoseLandmarkReceiver
         [SerializeField] private bool _showPreview = true;
         [SerializeField] private bool _showlandmarks = true;
         [SerializeField] private RawImage _preview;
-        
+
         private Texture2D _frameTexture;
 
 #if UNITY_EDITOR
@@ -88,9 +88,9 @@ namespace PoseLandmarkReceiver
 
             // Draw landmarks
             Gizmos.color = Color.green;
-            foreach (var p in worldPoints)
+            foreach (Vector3 p in worldPoints)
             {
-                Gizmos.DrawSphere(p, 8f);
+                Gizmos.DrawSphere(p, 2f);
             }
 
             // Draw skeleton connections

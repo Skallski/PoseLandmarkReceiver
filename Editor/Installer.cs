@@ -11,11 +11,11 @@ namespace PoseLandmarkSender.Editor
 {
     public class Installer : EditorWindow
     {
-        private const string Owner   = "Skallski";
-        private const string Repo    = "PoseLandmarkSender";
-        private const string Tag     = "v1.2";
-        private const string ExeName = "PoseLandmarkSender.exe";
-        private const string CfgName = "config.json";
+        private const string OWNER   = "Skallski";
+        private const string REPO    = "PoseLandmarkSender";
+        private const string TAG     = "v1.2";
+        private const string EXE_NAME = "PoseLandmarkSender.exe";
+        private const string CFG_NAME = "config.json";
 
         private static readonly HttpClient Http = CreateHttp();
         
@@ -30,7 +30,7 @@ namespace PoseLandmarkSender.Editor
             return h;
         }
 
-        private static string Url(string asset) => $"https://github.com/{Owner}/{Repo}/releases/download/{Tag}/{asset}";
+        private static string Url(string asset) => $"https://github.com/{OWNER}/{REPO}/releases/download/{TAG}/{asset}";
 
         private CancellationTokenSource _cts;
         private bool IsRunning => _cts != null;
@@ -43,12 +43,12 @@ namespace PoseLandmarkSender.Editor
 
         private void OnGUI()
         {
-            string sa = Path.Combine(Application.dataPath, "StreamingAssets");
-            bool installed = File.Exists(Path.Combine(sa, ExeName)) && File.Exists(Path.Combine(sa, CfgName));
+            string sa = Path.Combine(Application.dataPath, "StreamingAssets", "PoseLandmarkSender");
+            bool installed = File.Exists(Path.Combine(sa, EXE_NAME)) && File.Exists(Path.Combine(sa, CFG_NAME));
 
             using (new EditorGUI.DisabledScope(installed || IsRunning))
             {
-                if (GUILayout.Button($"Install {Tag} → StreamingAssets", GUILayout.Height(36)))
+                if (GUILayout.Button($"Install {TAG} → StreamingAssets/PoseLandmarkSender", GUILayout.Height(36)))
                 {
                     RunBackgroundInstall();
                 }
@@ -68,7 +68,7 @@ namespace PoseLandmarkSender.Editor
             {
                 EditorGUILayout.HelpBox(
                     installed ? "Files already present."
-                              : $"Downloads {ExeName} & {CfgName} in the background to Assets/StreamingAssets.",
+                              : $"Downloads {EXE_NAME} & {CFG_NAME} in the background to Assets/StreamingAssets/PoseLandmarkSender.",
                     installed ? MessageType.Info : MessageType.Warning);
             }
         }
@@ -85,15 +85,15 @@ namespace PoseLandmarkSender.Editor
             int progressId = Progress.Start("Pose Landmark Sender", "Downloading…", Progress.Options.Indefinite | Progress.Options.Sticky);
             Progress.RegisterCancelCallback(progressId, () => { _cts.Cancel(); return true; });
 
-            string sa = Path.Combine(Application.dataPath, "StreamingAssets");
+            string sa = Path.Combine(Application.dataPath, "StreamingAssets", "PoseLandmarkSender");
             Directory.CreateDirectory(sa);
 
             Task.Run(async () =>
             {
                 try
                 {
-                    await DownloadToFileAsync(Url(ExeName), Path.Combine(sa, ExeName), _cts.Token, progressId, "Downloading exe…");
-                    await DownloadToFileAsync(Url(CfgName), Path.Combine(sa, CfgName), _cts.Token, progressId, "Downloading config…");
+                    await DownloadToFileAsync(Url(EXE_NAME), Path.Combine(sa, EXE_NAME), _cts.Token, progressId, "Downloading exe…");
+                    await DownloadToFileAsync(Url(CFG_NAME), Path.Combine(sa, CFG_NAME), _cts.Token, progressId, "Downloading config…");
 
                     EditorApplication.delayCall += () =>
                     {
@@ -105,7 +105,7 @@ namespace PoseLandmarkSender.Editor
                         
                         AssetDatabase.Refresh();
                         Finish(progressId, Progress.Status.Succeeded);
-                        EditorUtility.DisplayDialog("Pose Landmark Sender", "Installed to Assets/StreamingAssets.", "OK");
+                        EditorUtility.DisplayDialog("Pose Landmark Sender", "Installed to Assets/StreamingAssets/PoseLandmarkSender.", "OK");
                     };
                 }
                 catch (OperationCanceledException)

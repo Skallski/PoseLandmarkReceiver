@@ -1,9 +1,9 @@
 ﻿{
   "name": "com.skallski.pose-landmark-receiver",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "Pose Landmark Receiver",
   "description": "MediaPipe pose landmark data over UDP receiver",
-  "unity": "2020.3",
+  "unity": "2022.3",
   "keywords": [
     "MediaPipe",
     "Pose",

@@ -59,7 +59,7 @@ namespace PoseLandmarkReceiver
         public static event Action<FrameData> OnFrameDataReceived;
 
         [SerializeField] private UdpConnectionConfig _udpCfg;
-        [SerializeField] private bool _logPackets;
+        [SerializeField] private bool _logReceivedPackets;
 
         private UdpClient _udpClient;
 
@@ -95,9 +95,9 @@ namespace PoseLandmarkReceiver
 
             if (packet != null)
             {
-                if (_logPackets)
+                if (_logReceivedPackets)
                 {
-                    Debug.Log(packet.ToString());
+                    PoseLandmarkLogger.Log($"Packet received: {packet}");
                 }
 
                 OnFrameDataReceived?.Invoke(new FrameData(packet.pts.ToArray(), packet.frame_b64));
@@ -135,7 +135,7 @@ namespace PoseLandmarkReceiver
                 /* ignore */
             }
 
-            Debug.Log($"<color=green>UDP connection closed successfully!</color>");
+            PoseLandmarkLogger.Log("UDP connection closed successfully");
         }
 
         private async Task LoadConfig()
@@ -147,7 +147,7 @@ namespace PoseLandmarkReceiver
 
             _udpCfg = new UdpConnectionConfig();
 
-            string path = Path.Combine(Application.streamingAssetsPath, "config.json");
+            string path = Path.Combine(Application.streamingAssetsPath, "PoseLandmarkSender", "config.json");
             if (File.Exists(path))
             {
                 try
@@ -158,18 +158,17 @@ namespace PoseLandmarkReceiver
                         _udpCfg = JsonUtility.FromJson<UdpConnectionConfig>(jsonText);
                         _udpCfg.IsLoaded = true;
 
-                        Debug.Log(
-                            $"<color=green>Config loaded successfully! ip: {_udpCfg.udp_ip}, port: {_udpCfg.udp_port}</color>");
+                        PoseLandmarkLogger.Log($"Config loaded successfully. ip: {_udpCfg.udp_ip}, port: {_udpCfg.udp_port}>");
                     }
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"Config error occured: {e.Message}");
+                    PoseLandmarkLogger.LogError($"Config error occured: {e.Message}");
                 }
             }
             else
             {
-                Debug.LogError("Config file not found!");
+                PoseLandmarkLogger.LogError("Config file not found!");
             }
         }
 
@@ -188,12 +187,11 @@ namespace PoseLandmarkReceiver
                 };
                 _udpReceiveThread.Start();
 
-                Debug.Log(
-                    $"<color=green>UDP connection started successfully! Listening on port: {_udpCfg.udp_port}</color>");
+                PoseLandmarkLogger.Log($"UDP connection started successfully. Listening on port: {_udpCfg.udp_port}");
             }
             catch (Exception e)
             {
-                Debug.LogError($"Failed to start UDP connection: {e.Message}");
+                PoseLandmarkLogger.LogError($"Failed to start UDP connection: {e.Message}");
             }
         }
 
@@ -237,12 +235,12 @@ namespace PoseLandmarkReceiver
                 {
                     if (_running)
                     {
-                        Debug.LogError($"Socket Exception in ReceiveLoop: {e.Message}");
+                        PoseLandmarkLogger.LogError($"Socket Exception in ReceiveLoop: {e.Message}");
                     }
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"Exception in ReceiveLoop: {e.Message}");
+                    PoseLandmarkLogger.LogError($"Exception in ReceiveLoop: {e.Message}");
                 }
             }
         }
