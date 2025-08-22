@@ -2,7 +2,7 @@
 {
     internal static class PoseLandmarkLogger
     {
-        private const string MSG_HEADER = "<color=blue>[POSE LANDMARK RECEIVER]</color>";
+        private const string MSG_HEADER = "<color=cyan>[POSE LANDMARK RECEIVER]</color>";
         
         internal static void Log(string msg)
         {

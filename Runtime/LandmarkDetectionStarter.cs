@@ -28,13 +28,13 @@ namespace PoseLandmarkReceiver
             _fileName = $"{PROCESS_NAME}.exe";
             
             // Try attach to existing process
-            Process existing = Process.GetProcessesByName(PROCESS_NAME)
-                .FirstOrDefault(p => p.HasExited == false);
-            
+            Process existing = Process.GetProcessesByName(PROCESS_NAME).FirstOrDefault(p => p.HasExited == false);
             if (existing != null)
             {
                 _process = existing;
-                
+                _process.EnableRaisingEvents = true;
+                _process.Exited += (_, __) => PoseLandmarkLogger.Log($"{_fileName} exited");
+
                 PoseLandmarkLogger.Log($"{_fileName} already running – attached.");
                 OnLandmarkDetectionStarted?.Invoke();
                 return;
@@ -58,9 +58,14 @@ namespace PoseLandmarkReceiver
                 };
 
                 _process = Process.Start(psi);
-                PoseLandmarkLogger.Log($"{_fileName} started successfully");
-
-                OnLandmarkDetectionStarted?.Invoke();
+                if (_process != null)
+                {
+                    _process.EnableRaisingEvents = true;
+                    _process.Exited += (_, __) => PoseLandmarkLogger.Log($"{_fileName} exited.");
+                    
+                    PoseLandmarkLogger.Log($"{_fileName} started successfully");
+                    OnLandmarkDetectionStarted?.Invoke();
+                }
             }
             catch (Exception e)
             {
@@ -79,7 +84,7 @@ namespace PoseLandmarkReceiver
                     _process.Kill();
                     _process.WaitForExit(2000);
                     
-                    PoseLandmarkLogger.Log($"{_fileName} closed successfully");
+                    PoseLandmarkLogger.Log($"{_fileName} stopped successfully");
                 }
             }
             catch
